@@ -30,11 +30,15 @@ class PlantController extends Controller
         $plants = Plant::query()
             ->where('user_id', $request->user()->id)
             ->when(filled($search), function ($query) use ($search) {
-                $term = '%'.str_replace(['%', '_'], ['\%', '\_'], (string) $search).'%';
-                $query->where(function ($q) use ($term) {
-                    $q->where('name', 'like', $term)
-                        ->orWhere('scientific_name', 'like', $term)
-                        ->orWhere('description', 'like', $term);
+                $escaped = str_replace('\\', '\\\\', (string) $search);
+                $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $escaped);
+                $pattern = '%'.$escaped.'%';
+                $grammar = $query->getGrammar();
+                $query->where(function ($q) use ($pattern, $grammar) {
+                    foreach (['name', 'scientific_name', 'description'] as $column) {
+                        $wrapped = $grammar->wrap($column);
+                        $q->orWhereRaw("{$wrapped} LIKE ? ESCAPE ?", [$pattern, '\\']);
+                    }
                 });
             })
             ->orderBy($sort, $sortDirection)
