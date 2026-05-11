@@ -7,6 +7,7 @@ use App\Http\Requests\UpdatePlantRequest;
 use App\Models\Plant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class PlantController extends Controller
 {
@@ -66,7 +67,7 @@ class PlantController extends Controller
         return response()->json($plant);
     }
 
-    public function destroy(Plant $plant): JsonResponse
+    public function destroy(Plant $plant): Response
     {
         $this->authorize('delete', $plant);
 

@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateLocationRequest;
 use App\Models\Location;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class LocationController extends Controller
 {
@@ -15,7 +16,8 @@ class LocationController extends Controller
         $this->authorize('viewAny', Location::class);
 
         $locations = Location::query()
-            ->where('user_id', $request->user()->id);
+            ->where('user_id', $request->user()->id)
+            ->get();
 
         return response()->json($locations);
     }
@@ -44,7 +46,7 @@ class LocationController extends Controller
         return response()->json($location);
     }
 
-    public function destroy(Location $location): JsonResponse
+    public function destroy(Location $location): Response
     {
         $this->authorize('delete', $location);
 
