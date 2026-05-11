@@ -20,6 +20,7 @@ class StorePlantRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'scientific_name' => ['required', 'string', 'max:255'],
+            'location_id' => ['required', 'exists:locations,id'],
             'description' => ['nullable', 'string'],
             'image_url' => ['nullable', 'string', 'max:2048', 'url'],
         ];

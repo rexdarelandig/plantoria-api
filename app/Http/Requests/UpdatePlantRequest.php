@@ -19,6 +19,7 @@ class UpdatePlantRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'scientific_name' => ['sometimes', 'required', 'string', 'max:255'],
+            'location_id' => ['sometimes', 'required', 'exists:locations,id'],
             'description' => ['nullable', 'string'],
             'image_url' => ['nullable', 'string', 'max:2048', 'url'],
         ];
