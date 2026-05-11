@@ -207,6 +207,47 @@ test('index orders by allowed columns asc and desc', function (): void {
     expect(collect($desc)->pluck('name')->first())->toBe('Zebra');
 });
 
+test('index orders by multiple columns', function (): void {
+    $location = Location::query()->create(['user_id' => $this->user->id, 'name' => 'Yard']);
+
+    Plant::query()->create([
+        'user_id' => $this->user->id,
+        'location_id' => $location->id,
+        'name' => 'Ivy',
+        'scientific_name' => 'Hedera helix',
+        'description' => null,
+        'image_url' => null,
+    ]);
+
+    Plant::query()->create([
+        'user_id' => $this->user->id,
+        'location_id' => $location->id,
+        'name' => 'Ivy',
+        'scientific_name' => 'Hedera algeriensis',
+        'description' => null,
+        'image_url' => null,
+    ]);
+
+    Plant::query()->create([
+        'user_id' => $this->user->id,
+        'location_id' => $location->id,
+        'name' => 'Oak',
+        'scientific_name' => 'Quercus',
+        'description' => null,
+        'image_url' => null,
+    ]);
+
+    $sorted = $this->getJson('/api/plants?sort=name,scientific_name&direction=asc')->json('data');
+
+    expect(collect($sorted)->pluck('scientific_name')->take(3)->values()->all())
+        ->toBe(['Hedera algeriensis', 'Hedera helix', 'Quercus']);
+
+    $bySciDesc = $this->getJson('/api/plants?sort=name,scientific_name&direction=asc,desc')->json('data');
+
+    expect(collect($bySciDesc)->where('name', 'Ivy')->pluck('scientific_name')->values()->all())
+        ->toBe(['Hedera helix', 'Hedera algeriensis']);
+});
+
 test('store creates a plant for the authenticated user', function (): void {
     $location = Location::query()->create(['user_id' => $this->user->id, 'name' => 'Kitchen']);
 

@@ -14,20 +14,49 @@ class PlantController extends Controller
     public function index(Request $request): JsonResponse
     {
         $search = $request->input('search');
-        $sort = $request->input('sort', 'created_at');
-        $sortDirection = $request->input('direction', 'desc');
+        $sortInput = $request->input('sort', 'created_at');
+        $directionInput = $request->input('direction', 'desc');
         $perPage = (int) $request->input('per_page', 15);
 
         $allowedSorts = ['created_at', 'updated_at', 'name', 'scientific_name'];
-        $sort = in_array($sort, $allowedSorts, true) ? $sort : 'created_at';
-        $sortDirection = in_array(strtolower((string) $sortDirection), ['asc', 'desc'], true)
-            ? strtolower((string) $sortDirection)
-            : 'desc';
+
+        $sortColumns = is_array($sortInput)
+            ? $sortInput
+            : explode(',', (string) $sortInput);
+        $sortColumns = array_values(array_filter(
+            array_map(fn ($s) => trim((string) $s), $sortColumns),
+            fn (string $s): bool => $s !== ''
+        ));
+
+        $sortColumns = array_values(array_filter(
+            $sortColumns,
+            fn (string $column): bool => in_array($column, $allowedSorts, true)
+        ));
+
+        if ($sortColumns === []) {
+            $sortColumns = ['created_at'];
+        }
+
+        $directionParts = is_array($directionInput)
+            ? $directionInput
+            : explode(',', (string) $directionInput);
+        $directionParts = array_values(array_map(
+            fn ($d) => trim((string) $d),
+            $directionParts
+        ));
+
+        $directions = [];
+        foreach ($sortColumns as $i => $_) {
+            $raw = $directionParts[$i] ?? $directionParts[0] ?? 'desc';
+            $dir = strtolower((string) $raw);
+            $directions[] = in_array($dir, ['asc', 'desc'], true) ? $dir : 'desc';
+        }
+
         $perPage = max(1, min(100, $perPage));
 
         $this->authorize('viewAny', Plant::class);
 
-        $plants = Plant::query()
+        $query = Plant::query()
             ->where('user_id', $request->user()->id)
             ->when(filled($search), function ($query) use ($search) {
                 $escaped = str_replace('\\', '\\\\', (string) $search);
@@ -40,9 +69,13 @@ class PlantController extends Controller
                         $q->orWhereRaw("{$wrapped} LIKE ? ESCAPE ?", [$pattern, '\\']);
                     }
                 });
-            })
-            ->orderBy($sort, $sortDirection)
-            ->paginate($perPage);
+            });
+
+        foreach ($sortColumns as $i => $column) {
+            $query->orderBy($column, $directions[$i]);
+        }
+
+        $plants = $query->paginate($perPage);
 
         return response()->json($plants);
     }
