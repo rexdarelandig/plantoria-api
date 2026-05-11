@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'scientific_name',
     'description',
     'image_url',
-    'slug',
 ])]
 class Plant extends Model
 {

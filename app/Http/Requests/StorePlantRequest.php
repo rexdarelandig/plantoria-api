@@ -22,7 +22,6 @@ class StorePlantRequest extends FormRequest
             'scientific_name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'image_url' => ['nullable', 'string', 'max:2048', 'url'],
-            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:plants,slug'],
         ];
     }
 }

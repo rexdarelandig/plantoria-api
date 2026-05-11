@@ -18,7 +18,7 @@ class PlantController extends Controller
         $sortDirection = $request->input('direction', 'desc');
         $perPage = (int) $request->input('per_page', 15);
 
-        $allowedSorts = ['created_at', 'updated_at', 'name', 'scientific_name', 'slug'];
+        $allowedSorts = ['created_at', 'updated_at', 'name', 'scientific_name'];
         $sort = in_array($sort, $allowedSorts, true) ? $sort : 'created_at';
         $sortDirection = in_array(strtolower((string) $sortDirection), ['asc', 'desc'], true)
             ? strtolower((string) $sortDirection)
